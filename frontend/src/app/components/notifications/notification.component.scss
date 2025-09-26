@@ -1,0 +1,98 @@
+.notifications-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1050;
+  max-width: 350px;
+  width: 100%;
+}
+
+.notification-item {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.75rem;
+  animation: slideIn 0.3s ease-out;
+
+  &.notification-success {
+    border-left: 4px solid #198754;
+
+    i {
+      color: #198754;
+    }
+  }
+
+  &.notification-error {
+    border-left: 4px solid #dc3545;
+
+    i {
+      color: #dc3545;
+    }
+  }
+
+  &.notification-warning {
+    border-left: 4px solid #ffc107;
+
+    i {
+      color: #ffc107;
+    }
+  }
+
+  &.notification-info {
+    border-left: 4px solid #0dcaf0;
+
+    i {
+      color: #0dcaf0;
+    }
+  }
+}
+
+.notification-content {
+  padding: 1rem;
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  i {
+    font-size: 1.1rem;
+  }
+
+  strong {
+    flex: 1;
+    font-weight: 600;
+  }
+
+  .btn-close {
+    font-size: 0.875rem;
+  }
+}
+
+.notification-message {
+  color: #6c757d;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 576px) {
+  .notifications-container {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}

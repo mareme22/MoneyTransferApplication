@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<div class="app-container">
+  <!-- Navbar -->
+  <app-navbar
+    *ngIf="isAuthenticated"
+    (logout)="onLogout()">
+  </app-navbar>
+
+  <!-- Notifications -->
+  <app-notification></app-notification>
+
+  <!-- Main Content -->
+  <main class="main-content" [class.with-navbar]="isAuthenticated">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="false">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+</div>
+
+
+
+</body>
+</html>
+

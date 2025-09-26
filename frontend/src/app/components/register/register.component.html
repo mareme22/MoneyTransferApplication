@@ -1,0 +1,141 @@
+<div class="register-container">
+  <!-- Étapes -->
+  <div class="steps">
+    <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">1</div>
+    <div class="step" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">2</div>
+    <div class="step" [class.active]="currentStep === 3">3</div>
+  </div>
+
+  <div *ngIf="currentStep === 1" @slideInOut>
+    <!-- Contenu du step 1 -->
+  </div>
+
+  <div *ngIf="currentStep === 2" @slideInOut>
+    <!-- Contenu du step 2 -->
+  </div>
+
+  <div *ngIf="currentStep === 3" @slideInOut>
+    <!-- Contenu du step 3 -->
+  </div>
+
+
+  <!-- Formulaire -->
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <!-- Étape 1 : Infos personnelles -->
+    <div *ngIf="currentStep === 1">
+      <div class="form-group">
+        <label>Prénom</label>
+        <input type="text" formControlName="firstName" [class.is-invalid]="isFieldInvalid('firstName')" />
+        <span class="error-message" *ngIf="isFieldInvalid('firstName')">
+          {{ getFieldError('firstName') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Nom</label>
+        <input type="text" formControlName="lastName" [class.is-invalid]="isFieldInvalid('lastName')" />
+        <span class="error-message" *ngIf="isFieldInvalid('lastName')">
+          {{ getFieldError('lastName') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" formControlName="email" [class.is-invalid]="isFieldInvalid('email')" />
+        <span class="error-message" *ngIf="isFieldInvalid('email')">
+          {{ getFieldError('email') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Téléphone</label>
+        <input type="text" formControlName="phone" [class.is-invalid]="isFieldInvalid('phone')" />
+        <span class="error-message" *ngIf="isFieldInvalid('phone')">
+          {{ getFieldError('phone') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Date de naissance</label>
+        <input type="date" [max]="maxDate" formControlName="dateOfBirth" />
+      </div>
+
+      <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="!canProceedToNextStep()">
+        Suivant →
+      </button>
+    </div>
+
+    <!-- Étape 2 : Sécurité -->
+    <div *ngIf="currentStep === 2">
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input [type]="showPassword ? 'text' : 'password'" formControlName="password" />
+        <button type="button" (click)="togglePasswordVisibility()">👁</button>
+        <span class="error-message" *ngIf="isFieldInvalid('password')">
+          {{ getFieldError('password') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Confirmer mot de passe</label>
+        <input [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword" />
+        <button type="button" (click)="toggleConfirmPasswordVisibility()">👁</button>
+        <span class="error-message" *ngIf="!passwordsMatch()">
+          Les mots de passe ne correspondent pas
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Question de sécurité</label>
+        <input type="text" formControlName="securityQuestion" />
+      </div>
+
+      <div class="form-group">
+        <label>Réponse</label>
+        <input type="text" formControlName="securityAnswer" />
+      </div>
+
+      <div class="buttons">
+        <button type="button" class="btn btn-secondary" (click)="previousStep()">← Précédent</button>
+        <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="!canProceedToNextStep()">
+          Suivant →
+        </button>
+      </div>
+    </div>
+
+    <!-- Étape 3 : Conditions -->
+    <div *ngIf="currentStep === 3">
+      <div class="form-group">
+        <label>
+          <input type="checkbox" formControlName="acceptTerms" />
+          J’accepte les conditions d’utilisation
+        </label>
+        <span class="error-message" *ngIf="isFieldInvalid('acceptTerms')">
+          Vous devez accepter les conditions
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" formControlName="acceptPrivacy" />
+          J’accepte la politique de confidentialité
+        </label>
+        <span class="error-message" *ngIf="isFieldInvalid('acceptPrivacy')">
+          Vous devez accepter la politique
+        </span>
+      </div>
+
+      <div class="buttons">
+        <button type="button" class="btn btn-secondary" (click)="previousStep()">← Précédent</button>
+        <button type="submit" class="btn btn-success" [disabled]="isSubmitting || !registerForm.valid">
+          {{ isSubmitting ? "Inscription..." : "Valider" }}
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Succès -->
+  <div *ngIf="registrationSuccess" class="success-message">
+    ✅ Inscription réussie ! Redirection en cours...
+  </div>
+</div>

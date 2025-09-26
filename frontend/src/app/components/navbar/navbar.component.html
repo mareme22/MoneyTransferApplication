@@ -1,0 +1,107 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+  <div class="container-fluid">
+    <!-- Logo -->
+    <a class="navbar-brand" href="#" (click)="navigateTo('/dashboard')">
+      <i class="bi bi-currency-exchange"></i>
+      MoneyTransfer
+    </a>
+
+    <!-- Mobile menu button -->
+    <button
+      class="navbar-toggler"
+      type="button"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="isMenuOpen">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navigation menu -->
+    <div class="collapse navbar-collapse" [class.show]="isMenuOpen">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            [class.active]="isActiveRoute('/dashboard')"
+            (click)="navigateTo('/dashboard')">
+            <i class="bi bi-speedometer2"></i>
+            Tableau de bord
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            [class.active]="isActiveRoute('/accounts')"
+            (click)="navigateTo('/accounts')">
+            <i class="bi bi-wallet2"></i>
+            Mes Comptes
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            [class.active]="isActiveRoute('/transfer')"
+            (click)="navigateTo('/transfer')">
+            <i class="bi bi-arrow-left-right"></i>
+            Transférer
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            [class.active]="isActiveRoute('/history')"
+            (click)="navigateTo('/history')">
+            <i class="bi bi-clock-history"></i>
+            Historique
+          </a>
+        </li>
+      </ul>
+
+      <!-- User menu -->
+      <div class="navbar-nav ms-auto" *ngIf="userProfile">
+        <div class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle d-flex align-items-center"
+            href="#"
+            id="userDropdown"
+            role="button"
+            data-bs-toggle="dropdown">
+            <div class="user-avatar me-2">
+              {{ userProfile.initials }}
+            </div>
+            {{ userProfile.firstName }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <h6 class="dropdown-header">
+                {{ userProfile.fullName }}
+                <small class="text-muted d-block">{{ userProfile.email }}</small>
+              </h6>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" (click)="navigateTo('/profile')">
+                <i class="bi bi-person"></i>
+                Mon Profil
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" (click)="navigateTo('/settings')">
+                <i class="bi bi-gear"></i>
+                Paramètres
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item text-danger" (click)="onLogout()">
+                <i class="bi bi-box-arrow-right"></i>
+                Déconnexion
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+

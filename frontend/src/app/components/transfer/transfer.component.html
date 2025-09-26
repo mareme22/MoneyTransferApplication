@@ -1,0 +1,516 @@
+<div class="transfer-container">
+  <div class="container py-4">
+
+    <!-- Page Header -->
+    <div class="row mb-4">
+      <div class="col">
+        <div class="page-header">
+          <button class="btn btn-outline-light" (click)="goBack()">
+            <i class="bi bi-arrow-left"></i>
+            <span class="d-none d-md-inline ms-1">Retour</span>
+          </button>
+          <div class="header-content flex-grow-1 mx-3">
+            <h1 class="text-white fw-bold mb-1">
+              <i class="bi bi-send me-2"></i>
+              {{ transferCompleted ? 'Transfert Réussi' : 'Nouveau Transfert' }}
+            </h1>
+            <p class="text-white-50 mb-0">
+              {{ transferCompleted ? 'Votre transfert a été effectué avec succès' : 'Envoyez de l\'argent rapidement et en sécurité' }}
+            </p>
+          </div>
+          <div class="header-actions" *ngIf="!transferCompleted">
+            <button class="btn btn-outline-light" title="Aide">
+              <i class="bi bi-question-circle"></i>
+              <span class="d-none d-lg-inline ms-1">Aide</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="text-center py-5">
+        <div class="spinner-border text-light mb-3" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Chargement...</span>
+        </div>
+        <p class="text-white fs-5">Chargement de vos comptes...</p>
+      </div>
+    </div>
+
+    <!-- Transfer Success State -->
+    <div *ngIf="transferCompleted && completedTransfer" class="success-container">
+      <div class="success-card">
+        <div class="success-animation">
+          <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div class="success-waves">
+            <div class="wave wave-1"></div>
+            <div class="wave wave-2"></div>
+            <div class="wave wave-3"></div>
+          </div>
+        </div>
+
+        <div class="success-content text-center">
+          <h2 class="success-title">Transfert effectué !</h2>
+          <p class="success-message">
+            Votre transfert de <strong>{{ formatCurrency(completedTransfer.amount) }}</strong>
+            a été envoyé avec succès.
+          </p>
+
+          <div class="transfer-details">
+            <div class="detail-item">
+              <span class="detail-label">Destinataire :</span>
+              <span class="detail-value">{{ completedTransfer.toAccount.accountNumber }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Référence :</span>
+              <span class="detail-value">#{{ completedTransfer.id }}</span>
+            </div>
+            <div class="detail-item" *ngIf="completedTransfer.description">
+              <span class="detail-label">Description :</span>
+              <span class="detail-value">{{ completedTransfer.description }}</span>
+            </div>
+          </div>
+
+          <div class="success-actions">
+            <button class="btn btn-primary btn-lg me-3" routerLink="/dashboard">
+              <i class="bi bi-house"></i>
+              Retour au tableau de bord
+            </button>
+            <button class="btn btn-outline-primary btn-lg" routerLink="/history">
+              <i class="bi bi-clock-history"></i>
+              Voir l'historique
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transfer Form -->
+    <div *ngIf="!isLoading && !transferCompleted">
+
+      <!-- Progress Steps -->
+      <div class="row mb-4">
+        <div class="col">
+          <div class="progress-steps">
+            <div class="step-container" *ngFor="let step of steps; let i = index">
+              <div class="step"
+                   [class.active]="step.isActive"
+                   [class.completed]="step.isCompleted"
+                   [class.error]="step.hasError">
+                <div class="step-number">
+                  <span *ngIf="!step.isCompleted && !step.hasError">{{ step.number }}</span>
+                  <i class="bi bi-check" *ngIf="step.isCompleted && !step.hasError"></i>
+                  <i class="bi bi-exclamation" *ngIf="step.hasError"></i>
+                </div>
+                <div class="step-content">
+                  <div class="step-title">{{ step.title }}</div>
+                  <div class="step-description">{{ step.description }}</div>
+                </div>
+              </div>
+              <div class="step-connector" *ngIf="i < steps.length - 1" [class.completed]="step.isCompleted"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Transfer Form -->
+      <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+          <div class="transfer-card">
+
+            <!-- Confirmation Mode -->
+            <div *ngIf="showConfirmation" class="confirmation-section">
+              <div class="confirmation-header text-center mb-4">
+                <h3 class="text-primary">
+                  <i class="bi bi-shield-check me-2"></i>
+                  Confirmer le transfert
+                </h3>
+                <p class="text-muted">Vérifiez attentivement les détails de votre transfert</p>
+              </div>
+
+              <div class="transfer-summary-card">
+                <div class="summary-header">
+                  <h4>Récapitulatif du transfert</h4>
+                </div>
+                <div class="summary-body">
+                  <div class="summary-row">
+                    <span class="summary-label">
+                      <i class="bi bi-credit-card me-2"></i>
+                      Compte source :
+                    </span>
+                    <span class="summary-value">{{ transferSummary?.fromAccount }}</span>
+                  </div>
+                  <div class="summary-row">
+                    <span class="summary-label">
+                      <i class="bi bi-bank me-2"></i>
+                      Destinataire :
+                    </span>
+                    <span class="summary-value">{{ transferSummary?.toAccount }}</span>
+                  </div>
+                  <div class="summary-row">
+                    <span class="summary-label">
+                      <i class="bi bi-currency-euro me-2"></i>
+                      Montant :
+                    </span>
+                    <span class="summary-value amount">{{ formatCurrency(transferSummary?.amount || 0) }}</span>
+                  </div>
+                  <div class="summary-row" *ngIf="transferSummary?.description">
+                    <span class="summary-label">
+                      <i class="bi bi-chat-text me-2"></i>
+                      Description :
+                    </span>
+                    <span class="summary-value">{{ transferSummary.description }}</span>
+                  </div>
+                  <div class="summary-row" *ngIf="getTransferFees() > 0">
+                    <span class="summary-label">
+                      <i class="bi bi-receipt me-2"></i>
+                      Frais :
+                    </span>
+                    <span class="summary-value">{{ formatCurrency(getTransferFees()) }}</span>
+                  </div>
+                  <hr>
+                  <div class="summary-row total">
+                    <span class="summary-label">
+                      <strong>Total à débiter :</strong>
+                    </span>
+                    <span class="summary-value total-amount">
+                      <strong>{{ formatCurrency(transferSummary?.totalAmount || 0) }}</strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Security Notice -->
+              <div class="security-notice">
+                <div class="notice-icon">
+                  <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <div class="notice-content">
+                  <h6>Transfert sécurisé</h6>
+                  <p>Cette transaction est protégée par un chiffrement de niveau bancaire.
+                    Une fois confirmée, elle sera traitée immédiatement.</p>
+                </div>
+              </div>
+
+              <!-- Confirmation Actions -->
+              <div class="confirmation-actions">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-lg me-3"
+                  (click)="showConfirmation = false"
+                  [disabled]="isSubmitting">
+                  <i class="bi bi-arrow-left"></i>
+                  Modifier
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-success btn-lg"
+                  (click)="executeTransfer()"
+                  [disabled]="isSubmitting">
+                  <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+                  <i *ngIf="!isSubmitting" class="bi bi-check-circle me-2"></i>
+                  {{ isSubmitting ? 'Traitement en cours...' : 'Confirmer le transfert' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Form Mode -->
+            <form [formGroup]="transferForm" (ngSubmit)="onSubmit()" *ngIf="!showConfirmation">
+
+              <!-- Step 1: Source Account -->
+              <div class="form-section">
+                <div class="section-header">
+                  <div class="step-number">1</div>
+                  <div class="section-content">
+                    <h5 class="section-title">Compte source</h5>
+                    <p class="section-description">Sélectionnez le compte à débiter</p>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="fromAccountNumber" class="form-label">
+                    <i class="bi bi-wallet2 me-2"></i>
+                    Choisir un compte <span class="required">*</span>
+                  </label>
+                  <select
+                    id="fromAccountNumber"
+                    class="form-select form-control-lg"
+                    [class.is-invalid]="isFieldInvalid('fromAccountNumber')"
+                    [class.is-valid]="selectedSourceAccount !== null"
+                    formControlName="fromAccountNumber"
+                    (change)="onAccountChange()">
+                    <option value="">-- Sélectionnez un compte --</option>
+                    <option
+                      *ngFor="let account of userAccounts"
+                      [value]="account.accountNumber">
+                      {{ account.accountNumber }} - {{ formatCurrency(account.balance) }} ({{ account.currency }})
+                    </option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('fromAccountNumber')">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    {{ getFieldError('fromAccountNumber') }}
+                  </div>
+                </div>
+
+                <!-- Selected Account Info -->
+                <div class="account-info-card" *ngIf="selectedSourceAccount">
+                  <div class="account-info-header">
+                    <div class="account-icon">
+                      <i class="bi bi-credit-card-2-front"></i>
+                    </div>
+                    <div class="account-details">
+                      <h6 class="account-number">{{ selectedSourceAccount.accountNumber }}</h6>
+                      <small class="text-muted">{{ selectedSourceAccount.currency }}</small>
+                    </div>
+                  </div>
+                  <div class="account-balance">
+                    <div class="balance-label">Solde disponible</div>
+                    <div class="balance-amount text-success">{{ formatCurrency(selectedSourceAccount.balance) }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2: Destination Account -->
+              <div class="form-section">
+                <div class="section-header">
+                  <div class="step-number">2</div>
+                  <div class="section-content">
+                    <h5 class="section-title">Compte destinataire</h5>
+                    <p class="section-description">Numéro de compte à créditer</p>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="toAccountNumber" class="form-label">
+                    <i class="bi bi-bank me-2"></i>
+                    Numéro de compte destinataire <span class="required">*</span>
+                  </label>
+                  <div class="input-group input-group-lg">
+                    <input
+                      type="text"
+                      id="toAccountNumber"
+                      class="form-control"
+                      [class.is-invalid]="isFieldInvalid('toAccountNumber')"
+                      [class.is-valid]="hasValidDestination"
+                      formControlName="toAccountNumber"
+                      placeholder="ACC1234567890"
+                      maxlength="20"
+                      (input)="onDestinationChange()">
+
+                    <!-- Validation Status Icon -->
+                    <span class="input-group-text validation-status">
+                      <div class="spinner-border spinner-border-sm" *ngIf="isDestinationValidating"></div>
+                      <i class="bi bi-check-circle text-success" *ngIf="!isDestinationValidating && hasValidDestination"></i>
+                      <i class="bi bi-x-circle text-danger" *ngIf="!isDestinationValidating && destinationAccountInfo.error"></i>
+                      <i class="bi bi-search text-muted" *ngIf="!isDestinationValidating && !hasValidDestination && !destinationAccountInfo.error"></i>
+                    </span>
+                  </div>
+
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('toAccountNumber')">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    {{ getFieldError('toAccountNumber') }}
+                  </div>
+
+                  <!-- Account Validation Feedback -->
+                  <div class="validation-feedback mt-2" *ngIf="destinationAccountInfo.message || destinationAccountInfo.error">
+                    <div class="feedback-content"
+                         [class.text-success]="hasValidDestination"
+                         [class.text-danger]="!hasValidDestination">
+                      <i [class]="hasValidDestination ? 'bi bi-check-circle' : 'bi bi-x-circle'"></i>
+                      {{ destinationAccountInfo.message || destinationAccountInfo.error }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3: Amount -->
+              <div class="form-section">
+                <div class="section-header">
+                  <div class="step-number">3</div>
+                  <div class="section-content">
+                    <h5 class="section-title">Montant du transfert</h5>
+                    <p class="section-description">Somme à transférer en euros</p>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="amount" class="form-label">
+                    <i class="bi bi-currency-euro me-2"></i>
+                    Montant <span class="required">*</span>
+                  </label>
+                  <div class="input-group input-group-lg">
+                    <span class="input-group-text">
+                      <i class="bi bi-currency-euro"></i>
+                    </span>
+                    <input
+                      type="number"
+                      id="amount"
+                      class="form-control amount-input"
+                      [class.is-invalid]="isFieldInvalid('amount')"
+                      [class.is-valid]="transferForm.get('amount')?.valid && transferForm.get('amount')?.value > 0"
+                      formControlName="amount"
+                      placeholder="0,00"
+                      step="0.01"
+                      min="0.01"
+                      [max]="sourceAccountBalance"
+                      (input)="onAmountChange()">
+                    <span class="input-group-text">EUR</span>
+                  </div>
+
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('amount')">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    {{ getFieldError('amount') }}
+                  </div>
+
+                  <!-- Amount Helper -->
+                  <div class="amount-helper" *ngIf="showAmountHelper()">
+                    <small class="text-muted">
+                      <i class="bi bi-info-circle me-1"></i>
+                      {{ getAmountHelperText() }}
+                    </small>
+                  </div>
+                </div>
+
+                <!-- Quick Amount Buttons -->
+                <div class="quick-amounts">
+                  <div class="quick-amounts-header">
+                    <small class="text-muted">Montants rapides :</small>
+                  </div>
+                  <div class="quick-amounts-buttons">
+                    <button
+                      *ngFor="let amount of QUICK_AMOUNTS"
+                      type="button"
+                      class="btn btn-outline-primary btn-sm quick-amount-btn"
+                      [disabled]="amount > sourceAccountBalance"
+                      (click)="setQuickAmount(amount)">
+                      {{ amount }}€
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary btn-sm"
+                      *ngIf="selectedSourceAccount && selectedSourceAccount.balance > 0"
+                      (click)="setMaxAmount()">
+                      <i class="bi bi-arrow-up-right-circle me-1"></i>
+                      Maximum
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 4: Description -->
+              <div class="form-section">
+                <div class="section-header">
+                  <div class="step-number">4</div>
+                  <div class="section-content">
+                    <h5 class="section-title">Description <span class="text-muted">(optionnel)</span></h5>
+                    <p class="section-description">Motif ou référence du transfert</p>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="description" class="form-label">
+                    <i class="bi bi-chat-text me-2"></i>
+                    Message ou référence
+                  </label>
+                  <textarea
+                    id="description"
+                    class="form-control"
+                    formControlName="description"
+                    placeholder="Ex: Remboursement restaurant, Cadeau anniversaire, Facture électricité..."
+                    rows="3"
+                    maxlength="200"></textarea>
+                  <div class="form-text">
+                    <div class="d-flex justify-content-between">
+                      <small class="text-muted">
+                        <i class="bi bi-lightbulb me-1"></i>
+                        Une description claire aide le destinataire à identifier le transfert
+                      </small>
+                      <small class="text-muted">
+                        {{ (transferForm.get('description')?.value?.length || 0) }}/200
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Predefined Descriptions -->
+                <div class="predefined-descriptions">
+                  <small class="text-muted mb-2 d-block">Descriptions courantes :</small>
+                  <div class="description-tags">
+                    <button
+                      *ngFor="let desc of ['Remboursement', 'Cadeau', 'Facture', 'Loyer', 'Courses', 'Restaurant']"
+                      type="button"
+                      class="btn btn-outline-secondary btn-sm description-tag"
+                      (click)="transferForm.patchValue({description: desc})">
+                      {{ desc }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="form-actions">
+                <div class="actions-left">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-lg"
+                    (click)="cancelTransfer()"
+                    [disabled]="isSubmitting">
+                    <i class="bi bi-x-lg me-2"></i>
+                    Annuler
+                  </button>
+                </div>
+
+                <div class="actions-right">
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-lg"
+                    [disabled]="!canProceed">
+                    <i class="bi bi-arrow-right me-2"></i>
+                    Vérifier et confirmer
+                  </button>
+                </div>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-question-circle me-2"></i>
+          Aide - Transfert d'argent
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="help-section">
+          <h6><i class="bi bi-shield-check me-2"></i>Sécurité</h6>
+          <p>Tous vos transferts sont sécurisés par un chiffrement bancaire. Vérifiez toujours le numéro de compte destinataire avant de confirmer.</p>
+        </div>
+        <div class="help-section">
+          <h6><i class="bi bi-clock me-2"></i>Délais</h6>
+          <p>Les transferts sont généralement traités instantanément. Dans certains cas, ils peuvent prendre jusqu'à 1 heure ouvrée.</p>
+        </div>
+        <div class="help-section">
+          <h6><i class="bi bi-currency-euro me-2"></i>Limites</h6>
+          <p>Le montant minimum est de 0,01€. Le montant maximum dépend de votre solde disponible.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
