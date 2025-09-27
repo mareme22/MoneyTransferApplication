@@ -8,16 +8,18 @@ import { AppComponent } from './app/app.component';
 import { appConfig } from './app/app.config';
 import { serverRoutes } from './app/app.routes.server';
 
+// ✅ config spécifique au serveur
 const serverConfig: ApplicationConfig = {
   providers: [
     provideServerRendering(),
-    provideRouter(serverRoutes)
+    provideRouter(serverRoutes) // remplace withRoutes
   ]
 };
 
+// ✅ fusion des configs
 const config = mergeApplicationConfig(appConfig, serverConfig);
 
-// ✅ Correction : bootstrap prend un contexte
-export default function bootstrap(context: unknown) {
-  return bootstrapApplication(AppComponent, config, context);
+// ✅ fonction de bootstrap à exporter par défaut
+export default function bootstrap() {
+  return bootstrapApplication(AppComponent, config);
 }
